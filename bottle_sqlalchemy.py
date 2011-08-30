@@ -1,5 +1,5 @@
 '''
-This bottle_sqlalchemy plugin integrates SQLAlchemy with your Bottle
+This bottle-sqlalchemy plugin integrates SQLAlchemy with your Bottle
 application. It connects to a database at the beginning of a request,
 passes the database handle to the route callback and closes the connection
 afterwards.
@@ -31,6 +31,7 @@ Usage Example::
 
         def __repr__(self):
             return "<Entity('%d', '%s')>" % (self.id, self.name)
+
 
     @app.get('/:name')
     def show(name, db):
