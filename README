@@ -1,4 +1,9 @@
-Bottle SQLAlchemy plugin is a work in progress and API changes can happen any time until I decide the best way to do it.
+This bottle-sqlalchemy plugin integrates SQLAlchemy with your Bottle application. It connects to a database at the beginning of a request, passes the database handle to the route callback and closes the session afterwards. SQLAlchemy manage sessions and connections to optimize anything it want.
+
+The plugin inject an argument to all route callbacks that require a `db` keyword.
+
+
+Bottle SQLAlchemy plugin is a work in progress and API changes can happen until I decide the best way to do it.
 
 You are welcome to help with ideas, use cases, questions, issues, etc.
 

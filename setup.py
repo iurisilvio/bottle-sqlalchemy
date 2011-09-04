@@ -29,7 +29,8 @@ setup(
         'bottle_sqlalchemy'
     ],
     requires = [
-        'bottle (>=0.9)'
+        'bottle (>=0.9)',
+        'sqlalchemy'
     ],
     classifiers = [
         'Environment :: Web Environment',
