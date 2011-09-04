@@ -4,7 +4,7 @@ application. It connects to a database at the beginning of a request,
 passes the database handle to the route callback and closes the connection
 afterwards.
 
-It inject an argument to all route callbacks that require a `db` keyword.
+The plugin inject an argument to all route callbacks that require a `db` keyword.
 
 Usage Example::
 
@@ -18,7 +18,7 @@ Usage Example::
     engine = create_engine('sqlite:///:memory:', echo=True)
 
     app = bottle.Bottle()
-    plugin = sqlalchemy.Plugin(engine, Base.metadata)
+    plugin = sqlalchemy.Plugin(engine, Base.metadata, create=True)
     app.install(plugin)
 
     class Entity(Base):
@@ -44,6 +44,11 @@ Usage Example::
     def put_name(name, db):
         entity = Entity(name)
         db.add(entity)
+
+
+It is up to you create engine and metadata, because SQLAlchemy has
+a lot of options to do it. This way, the plugin just handle the SQLAlchemy
+session.
 '''
 
 __author__ = "Iuri de Silvio"
@@ -55,23 +60,30 @@ __license__ = 'MIT'
 import bottle
 from bottle import HTTPError
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 
 class SQLAlchemyPlugin(object):
 
     name = 'sqlalchemy'
 
-    def __init__(self, engine, metadata=None, keyword='db', create=True, autocommit=True):
+    def __init__(self, engine, metadata=None,
+                 keyword='db', commit=True, create=False):
+        '''
+        :param engine: SQLAlchemy engine created with `create_engine` function
+        :param metadata: SQLAlchemy metadata. It is required only if `create=True`
+        :param keyword: Keyword used to inject session database in a route
+        :param create: If `create=True`, execute `metadata.create_all(engine)`
+               when plugin is applied
+        :param commit: If `commit=True`, commit changes after route is executed.
+        '''
         if create and not metadata:
-            raise TypeError('Define metadata value to create database.')
+            raise ValueError('Define metadata value to create database.')
         self.engine = engine
         self.metadata = metadata
         self.keyword = keyword
         self.create = create
-        self.autocommit = autocommit
+        self.commit = commit
 
     def setup(self, app):
         ''' Make sure that other installed plugins don't affect the same
@@ -79,7 +91,7 @@ class SQLAlchemyPlugin(object):
         for other in app.plugins:
             if not isinstance(other, SQLAlchemyPlugin): continue
             if other.keyword == self.keyword:
-                raise PluginError("Found another sqlalchemy plugin with "\
+                raise ValueError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
 
     def apply(self, callback, context):
@@ -98,7 +110,7 @@ class SQLAlchemyPlugin(object):
 
             try:
                 rv = callback(*args, **kwargs)
-                if self.autocommit:
+                if self.commit:
                     session.commit()
             except SQLAlchemyError, e:
                 session.rollback()
