@@ -28,25 +28,35 @@ class User(Base):
 @route('/')
 def listing(db):
     users = db.query(User)
-    result = ", ".join(user.name for user in users)
-    return "========<br />{}<br />========<br />".format(result)
+    result = "".join(["<li>%s</li>" % user.name for user in users])
+    return "<ul>%s</ul>" % result
 
 @put('/:name')
 def put_name(name, db):
     user = User(name, fullname=name, password=name)
     db.add(user)
 
+# imports to delete_name function
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+create_session = sessionmaker(bind=engine)
+
 @delete('/:name')
 def delete_name(name):
-    """ This function don't use the plugin. """
-    from sqlalchemy.orm import sessionmaker
-    db = sessionmaker(bind=engine)
-    user = db.query(User).filter_by(name=name).first()
-    db.delete(user)
-    db.commit()
+    ''' This function don't use the plugin. '''
+    session = create_session()
+    try:
+        user = session.query(User).filter_by(name=name).first()
+        session.delete(user)
+        session.commit()
+    except SQLAlchemyError, e:
+        session.rollback()
+        raise bottle.HTTPError(500, "Database Error", e)
+    finally:
+        session.close()
 
 
-bottle.install(SQLAlchemyPlugin(engine, Base.metadata))
+bottle.install(SQLAlchemyPlugin(engine, Base.metadata, create=True))
 
 if __name__ == '__main__':
     bottle.debug(True)
