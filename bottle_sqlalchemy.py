@@ -63,6 +63,16 @@ from bottle import HTTPError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
+try:
+    # PluginError is defined to bottle >= 0.10
+    from bottle import PluginError
+except ImportError:
+    from bottle import BottleException
+    
+    class PluginError(BottleException):
+        pass
+    bottle.PluginError = PluginError
+
 class SQLAlchemyPlugin(object):
 
     name = 'sqlalchemy'
@@ -78,7 +88,7 @@ class SQLAlchemyPlugin(object):
         :param commit: If `commit=True`, commit changes after route is executed.
         '''
         if create and not metadata:
-            raise ValueError('Define metadata value to create database.')
+            raise PluginError('Define metadata value to create database.')
         self.engine = engine
         self.metadata = metadata
         self.keyword = keyword
@@ -91,7 +101,7 @@ class SQLAlchemyPlugin(object):
         for other in app.plugins:
             if not isinstance(other, SQLAlchemyPlugin): continue
             if other.keyword == self.keyword:
-                raise ValueError("Found another SQLAlchemy plugin with "\
+                raise PluginError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
 
     def apply(self, callback, context):

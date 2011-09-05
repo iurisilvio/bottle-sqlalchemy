@@ -24,7 +24,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         sqlalchemy.Plugin(self.engine, create=False)
 
     def test_without_metadata_create_table_raises(self):
-        self.assertRaises(ValueError, sqlalchemy.Plugin, self.engine, create=True)
+        self.assertRaises(bottle.PluginError, sqlalchemy.Plugin, self.engine, create=True)
 
     def test_with_commit(self):
         self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata, create=True))
