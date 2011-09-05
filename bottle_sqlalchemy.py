@@ -47,7 +47,7 @@ Usage Example::
 
 
 It is up to you create engine and metadata, because SQLAlchemy has
-a lot of options to do it. This way, the plugin just handle the SQLAlchemy
+a lot of options to do it. The plugin just handle the SQLAlchemy
 session.
 '''
 
@@ -73,6 +73,7 @@ except ImportError:
         pass
     bottle.PluginError = PluginError
 
+
 class SQLAlchemyPlugin(object):
 
     name = 'sqlalchemy'
@@ -83,9 +84,9 @@ class SQLAlchemyPlugin(object):
         :param engine: SQLAlchemy engine created with `create_engine` function
         :param metadata: SQLAlchemy metadata. It is required only if `create=True`
         :param keyword: Keyword used to inject session database in a route
-        :param create: If `create=True`, execute `metadata.create_all(engine)`
+        :param create: If it is true, execute `metadata.create_all(engine)`
                when plugin is applied
-        :param commit: If `commit=True`, commit changes after route is executed.
+        :param commit: If it is true, commit changes after route is executed.
         '''
         if create and not metadata:
             raise PluginError('Define metadata value to create database.')
@@ -133,3 +134,4 @@ class SQLAlchemyPlugin(object):
 
 
 Plugin = SQLAlchemyPlugin
+
