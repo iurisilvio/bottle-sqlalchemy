@@ -56,6 +56,13 @@ class SQLAlchemyPluginTest(unittest.TestCase):
             self.assertFalse('db' in kw)
         self.app({'PATH_INFO':'/2', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
 
+    def test_install_two_times(self):
+        plugin1 = sqlalchemy.Plugin(self.engine)
+        plugin2 = sqlalchemy.Plugin(self.engine, keyword='db2')
+        self.app.install(plugin1)
+        self.app.install(plugin2)
+        self.assertRaises(bottle.PluginError, self.app.install, plugin1)
+
 
 if __name__ == '__main__':
     unittest.main()
