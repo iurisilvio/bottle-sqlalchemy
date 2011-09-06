@@ -28,89 +28,93 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self.assertRaises(sqlalchemy.PluginError, self.app.install, plugin)
 
     def test_with_commit(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata, create=True))
-
         @self.app.get('/')
         def test(db):
             entity = Entity()
             db.add(entity)
             self._db = db
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self._install_plugin(self.engine, Base.metadata, create=True)
+        self._request_path('/')
         self.assertEqual(self._db.query(Entity).count(), 1)
 
     def test_with_keyword(self):
-        self.app.install(sqlalchemy.Plugin(self.engine))
         @self.app.get('/')
         def test(db):
             self.assertTrue(isinstance(db, Session))
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self._install_plugin(self.engine)
+        self._request_path('/')
 
     def test_without_keyword(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata))
         @self.app.get('/')
         def test():
             pass
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
 
         @self.app.get('/2')
         def test(**kw):
             self.assertFalse('db' in kw)
-        self.app({'PATH_INFO':'/2', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+
+        self._install_plugin(self.engine, Base.metadata)
+        self._request_path('/')
+        self._request_path('/2')
 
     def test_install_conflicts(self):
-        plugin1 = sqlalchemy.Plugin(self.engine)
-        plugin2 = sqlalchemy.Plugin(self.engine, keyword='db2')
-        self.app.install(plugin1)
-        self.app.install(plugin2)
-        self.assertRaises(bottle.PluginError, self.app.install, plugin1)
+        self._install_plugin(self.engine)
+        self._install_plugin(self.engine, keyword='db2')
+        self.assertRaises(bottle.PluginError, self._install_plugin, self.engine)
 
     def test_route_with_view(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata))
         @self.app.get('/', apply=[bottle.view('index')])
         def test(db):
             pass
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata))
+        self._request_path('/')
 
     @unittest.skip("Bottle bug, defined by issue #207.")
     def test_view_decorator(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata))
         @self.app.get('/')
         @bottle.view('index')
         def test(db):
             pass
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self._install_plugin(self.engine, Base.metadata)
+        self._request_path('/')
 
     def test_route_based_keyword_config(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, create=False))
         @self.app.get('/', sqlalchemy=dict(keyword='db_keyword'))
         def test(db_keyword):
             pass
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self._install_plugin(self.engine, create=False)
+        self._request_path('/')
 
     def test_route_based_commit_config(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata, create=True))
         @self.app.get('/', sqlalchemy=dict(commit=False))
         def test(db):
             entity = Entity()
             db.add(entity)
             self._db = db
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self._install_plugin(self.engine, Base.metadata, create=True)
+        self._request_path('/')
         self.assertEqual(self._db.query(Entity).count(), 0)
 
     def test_route_based_create_config(self):
-        self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata, create=False))
         @self.app.get('/', sqlalchemy=dict(create=True))
         def test(db):
             entity = Entity()
             db.add(entity)
 
-        self.app({'PATH_INFO':'/', 'REQUEST_METHOD':'GET'}, lambda x, y: None)
+        self._install_plugin(self.engine, Base.metadata, create=False)
+        self._request_path('/')
+
+    def _request_path(self, path, method='GET'):
+        self.app({'PATH_INFO':path, 'REQUEST_METHOD':method}, lambda x, y: None)
+
+    def _install_plugin(self, *args, **kwargs):
+        self.app.install(sqlalchemy.Plugin(*args, **kwargs))
 
 
 if __name__ == '__main__':
