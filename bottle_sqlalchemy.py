@@ -107,21 +107,27 @@ class SQLAlchemyPlugin(object):
 
     def apply(self, callback, context):
         import inspect
+
+        config = context['config'].get('sqlalchemy', {})
+        keyword = config.get('keyword', self.keyword)
+        create = config.get('create', self.create)
+        commit = config.get('commit', self.commit)
+
         args = inspect.getargspec(context['callback'])[0]
-        if self.keyword not in args:
+        if keyword not in args:
             return callback
 
         self.sessionmaker = sessionmaker(bind=self.engine)
-        if self.create:
+        if create:
             self.metadata.create_all(self.engine)
 
         def wrapper(*args, **kwargs):
             session = self.sessionmaker()
-            kwargs[self.keyword] = session
+            kwargs[keyword] = session
 
             try:
                 rv = callback(*args, **kwargs)
-                if self.commit:
+                if commit:
                     session.commit()
             except SQLAlchemyError, e:
                 session.rollback()
