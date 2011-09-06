@@ -88,8 +88,6 @@ class SQLAlchemyPlugin(object):
                when plugin is applied
         :param commit: If it is true, commit changes after route is executed.
         '''
-        if create and not metadata:
-            raise PluginError('Define metadata value to create database.')
         self.engine = engine
         self.metadata = metadata
         self.keyword = keyword
@@ -98,12 +96,14 @@ class SQLAlchemyPlugin(object):
 
     def setup(self, app):
         ''' Make sure that other installed plugins don't affect the same
-            keyword argument.'''
+            keyword argument and check if metadata is available.'''
         for other in app.plugins:
             if not isinstance(other, SQLAlchemyPlugin): continue
             if other.keyword == self.keyword:
                 raise PluginError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
+        if self.create and not self.metadata:
+            raise PluginError('Define metadata value to create database.')
 
     def apply(self, callback, context):
         import inspect
