@@ -140,4 +140,3 @@ class SQLAlchemyPlugin(object):
 
 
 Plugin = SQLAlchemyPlugin
-
