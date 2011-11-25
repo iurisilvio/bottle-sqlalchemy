@@ -4,7 +4,8 @@ application. It connects to a database at the beginning of a request,
 passes the database handle to the route callback and closes the connection
 afterwards.
 
-The plugin inject an argument to all route callbacks that require a `db` keyword.
+The plugin inject an argument to all route callbacks that require a `db`
+keyword.
 
 Usage Example::
 
@@ -52,7 +53,7 @@ session.
 '''
 
 __author__ = "Iuri de Silvio"
-__version__ = '0.2'
+__version__ = '0.2.dev'
 __license__ = 'MIT'
 
 ### CUT HERE (see setup.py)
@@ -68,7 +69,7 @@ try:
     from bottle import PluginError
 except ImportError:
     from bottle import BottleException
-    
+
     class PluginError(BottleException):
         pass
     bottle.PluginError = PluginError
@@ -98,7 +99,8 @@ class SQLAlchemyPlugin(object):
         ''' Make sure that other installed plugins don't affect the same
             keyword argument and check if metadata is available.'''
         for other in app.plugins:
-            if not isinstance(other, SQLAlchemyPlugin): continue
+            if not isinstance(other, SQLAlchemyPlugin):
+                continue
             if other.keyword == self.keyword:
                 raise PluginError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
@@ -117,6 +119,7 @@ class SQLAlchemyPlugin(object):
         if keyword not in args:
             return callback
 
+        self.create_session()
         self.sessionmaker = sessionmaker(bind=self.engine)
         if create:
             self.metadata.create_all(self.engine)
@@ -137,6 +140,14 @@ class SQLAlchemyPlugin(object):
             return rv
 
         return wrapper
+
+    def create_session(self, create_db=False):
+        ''' Create a new session to be used in any context.'''
+        if not hasattr(self, 'sessionmaker'):
+            self.sessionmaker = sessionmaker(bind=self.engine)
+            if create_db:
+                self.metadata.create_all(self.engine)
+        return self.sessionmaker()
 
 
 Plugin = SQLAlchemyPlugin

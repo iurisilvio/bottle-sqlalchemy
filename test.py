@@ -1,6 +1,6 @@
 import unittest
 
-from sqlalchemy import create_engine, Column, Integer, Sequence, String
+from sqlalchemy import create_engine, Column, Integer, Sequence
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.session import Session
 
@@ -8,6 +8,7 @@ import bottle
 from bottle.ext import sqlalchemy
 
 Base = declarative_base()
+
 
 class Entity(Base):
     __tablename__ = 'entity'
@@ -52,7 +53,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
             pass
 
         @self.app.get('/2')
-        def test(**kw):
+        def test2(**kw):
             self.assertFalse('db' in kw)
 
         self._install_plugin(self.engine, Base.metadata)
@@ -62,7 +63,8 @@ class SQLAlchemyPluginTest(unittest.TestCase):
     def test_install_conflicts(self):
         self._install_plugin(self.engine)
         self._install_plugin(self.engine, keyword='db2')
-        self.assertRaises(bottle.PluginError, self._install_plugin, self.engine)
+        self.assertRaises(bottle.PluginError,
+            self._install_plugin, self.engine)
 
     def test_route_with_view(self):
         @self.app.get('/', apply=[bottle.view('index')])
@@ -110,8 +112,17 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self._install_plugin(self.engine, Base.metadata, create=False)
         self._request_path('/')
 
+    def test_create_session(self):
+        plugin = sqlalchemy.Plugin(self.engine, Base.metadata)
+        session = plugin.create_session(create_db=True)
+        entity = Entity()
+        session.add(entity)
+        session.commit()
+        self.assertEqual(session.query(Entity).count(), 1)
+
     def _request_path(self, path, method='GET'):
-        self.app({'PATH_INFO':path, 'REQUEST_METHOD':method}, lambda x, y: None)
+        self.app({'PATH_INFO': path, 'REQUEST_METHOD': method},
+            lambda x, y: None)
 
     def _install_plugin(self, *args, **kwargs):
         self.app.install(sqlalchemy.Plugin(*args, **kwargs))
