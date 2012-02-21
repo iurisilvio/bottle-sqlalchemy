@@ -53,7 +53,6 @@ session.
 '''
 
 import bottle
-from bottle import HTTPError
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -130,7 +129,13 @@ class SQLAlchemyPlugin(object):
                     session.commit()
             except SQLAlchemyError:
                 session.rollback()
-                raise HTTPError(500, "Database Error", _e())
+                raise bottle.HTTPError(500, "Database Error", _e())
+            except bottle.HTTPError:
+                raise
+            except bottle.HTTPResponse:
+                if commit:
+                    session.commit()
+                raise
             finally:
                 session.close()
             return rv

@@ -119,6 +119,30 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         session.commit()
         self.assertEqual(session.query(Entity).count(), 1)
 
+    def test_commit_on_redirect(self):
+        @self.app.get('/')
+        def test(db):
+            entity = Entity()
+            db.add(entity)
+            self._db = db
+            bottle.redirect('/')
+
+        self._install_plugin(self.engine, Base.metadata, create=True)
+        self._request_path('/')
+        self.assertEqual(self._db.query(Entity).count(), 1)
+
+    def test_commit_on_abort(self):
+        @self.app.get('/')
+        def test(db):
+            entity = Entity()
+            db.add(entity)
+            self._db = db
+            bottle.abort()
+
+        self._install_plugin(self.engine, Base.metadata, create=True)
+        self._request_path('/')
+        self.assertEqual(self._db.query(Entity).count(), 0)
+
     def _request_path(self, path, method='GET'):
         self.app({'PATH_INFO': path, 'REQUEST_METHOD': method},
             lambda x, y: None)
