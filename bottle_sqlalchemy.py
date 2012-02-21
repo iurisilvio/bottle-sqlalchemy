@@ -66,6 +66,7 @@ if not hasattr(bottle, 'PluginError'):
 class SQLAlchemyPlugin(object):
 
     name = 'sqlalchemy'
+    api = 2
 
     def __init__(self, engine, metadata=None,
                  keyword='db', commit=True, create=False):
@@ -95,15 +96,23 @@ class SQLAlchemyPlugin(object):
         if self.create and not self.metadata:
             raise bottle.PluginError('Define metadata value to create database.')
 
-    def apply(self, callback, context):
+    def apply(self, callback, route):
         import inspect
 
-        config = context['config'].get('sqlalchemy', {})
+        # hack to support bottle v0.9.x
+        if bottle.__version__.startswith('0.9'):
+            allconfig = route['config']
+            callback = route['callback']
+        else:
+            allconfig = route.config
+            callback = route.callback
+
+        config = allconfig.get('sqlalchemy', {})
         keyword = config.get('keyword', self.keyword)
         create = config.get('create', self.create)
         commit = config.get('commit', self.commit)
 
-        args = inspect.getargspec(context['callback'])[0]
+        args = inspect.getargspec(callback)[0]
         if keyword not in args:
             return callback
 
