@@ -74,11 +74,10 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata))
         self._request_path('/')
 
-    @unittest.skip("Bottle bug, defined by issue #207.")
     def test_view_decorator(self):
         @self.app.get('/')
         @bottle.view('index')
-        def test(db):
+        def test(db=None): # should define a default db value
             pass
 
         self._install_plugin(self.engine, Base.metadata)
