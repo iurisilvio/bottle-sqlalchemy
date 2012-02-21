@@ -57,12 +57,8 @@ import bottle
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
-try:
-    # PluginError is defined to bottle >= 0.10
-    from bottle import PluginError
-except ImportError:
-    from bottle import BottleException
-
+# PluginError is defined to bottle >= 0.10
+if not hasattr(bottle, 'PluginError'):
     class PluginError(BottleException):
         pass
     bottle.PluginError = PluginError
@@ -97,10 +93,10 @@ class SQLAlchemyPlugin(object):
             if not isinstance(other, SQLAlchemyPlugin):
                 continue
             if other.keyword == self.keyword:
-                raise PluginError("Found another SQLAlchemy plugin with "\
+                raise bottle.PluginError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
         if self.create and not self.metadata:
-            raise PluginError('Define metadata value to create database.')
+            raise bottle.PluginError('Define metadata value to create database.')
 
     def apply(self, callback, context):
         import inspect
