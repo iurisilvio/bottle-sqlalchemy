@@ -52,8 +52,9 @@ a lot of options to do it. The plugin just handle the SQLAlchemy
 session.
 '''
 
-import bottle
+import inspect
 
+import bottle
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -97,8 +98,6 @@ class SQLAlchemyPlugin(object):
             raise bottle.PluginError('Define metadata value to create database.')
 
     def apply(self, callback, route):
-        import inspect
-
         # hack to support bottle v0.9.x
         if bottle.__version__.startswith('0.9'):
             allconfig = route['config']
@@ -143,5 +142,6 @@ class SQLAlchemyPlugin(object):
     def _sessionmaker(self):
         s = sessionmaker(self.engine)
         return s()
+
 
 Plugin = SQLAlchemyPlugin
