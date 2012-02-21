@@ -59,7 +59,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 # PluginError is defined to bottle >= 0.10
 if not hasattr(bottle, 'PluginError'):
-    class PluginError(BottleException):
+    class PluginError(bottle.BottleException):
         pass
     bottle.PluginError = PluginError
 
