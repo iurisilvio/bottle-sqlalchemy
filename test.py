@@ -111,14 +111,6 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self._install_plugin(self.engine, Base.metadata, create=False)
         self._request_path('/')
 
-    def test_create_session(self):
-        plugin = sqlalchemy.Plugin(self.engine, Base.metadata)
-        session = plugin.create_session(create_db=True)
-        entity = Entity()
-        session.add(entity)
-        session.commit()
-        self.assertEqual(session.query(Entity).count(), 1)
-
     def test_commit_on_redirect(self):
         @self.app.get('/')
         def test(db):

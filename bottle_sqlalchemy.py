@@ -63,9 +63,6 @@ if not hasattr(bottle, 'PluginError'):
         pass
     bottle.PluginError = PluginError
 
-# py3k compatibility hack
-def _e(): return sys.exc_info()[1]
-
 class SQLAlchemyPlugin(object):
 
     name = 'sqlalchemy'
@@ -110,23 +107,19 @@ class SQLAlchemyPlugin(object):
         if keyword not in args:
             return callback
 
-        self.create_session()
-        self.sessionmaker = sessionmaker(bind=self.engine)
         if create:
             self.metadata.create_all(self.engine)
 
         def wrapper(*args, **kwargs):
-            session = self.sessionmaker()
+            session = self._sessionmaker()
             kwargs[keyword] = session
 
             try:
                 rv = callback(*args, **kwargs)
                 if commit:
                     session.commit()
-            except SQLAlchemyError:
+            except (SQLAlchemyError, bottle.HTTPError):
                 session.rollback()
-                raise bottle.HTTPError(500, "Database Error", _e())
-            except bottle.HTTPError:
                 raise
             except bottle.HTTPResponse:
                 if commit:
@@ -138,13 +131,8 @@ class SQLAlchemyPlugin(object):
 
         return wrapper
 
-    def create_session(self, create_db=False):
-        ''' Create a new session to be used in any context.'''
-        if not hasattr(self, 'sessionmaker'):
-            self.sessionmaker = sessionmaker(bind=self.engine)
-            if create_db:
-                self.metadata.create_all(self.engine)
-        return self.sessionmaker()
-
+    def _sessionmaker(self):
+        s = sessionmaker(self.engine)
+        return s()
 
 Plugin = SQLAlchemyPlugin
