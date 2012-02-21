@@ -68,6 +68,8 @@ except ImportError:
         pass
     bottle.PluginError = PluginError
 
+# py3k compatibility hack
+def _e(): return sys.exc_info()[1]
 
 class SQLAlchemyPlugin(object):
 
@@ -126,9 +128,9 @@ class SQLAlchemyPlugin(object):
                 rv = callback(*args, **kwargs)
                 if commit:
                     session.commit()
-            except SQLAlchemyError, e:
+            except SQLAlchemyError:
                 session.rollback()
-                raise HTTPError(500, "Database Error", e)
+                raise HTTPError(500, "Database Error", _e())
             finally:
                 session.close()
             return rv
