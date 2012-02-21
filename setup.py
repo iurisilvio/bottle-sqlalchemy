@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-import os
 from distutils.core import setup
 
 try:
@@ -9,21 +7,14 @@ try:
 except ImportError:
     from distutils.command.build_py import build_py
 
-# This ugly hack executes the first few lines of the module file to look up some
-# common variables. We cannot just import the module because it depends on other
-# modules that might not be installed yet.
-filename = os.path.join(os.path.dirname(__file__), 'bottle_sqlalchemy.py')
-source = open(filename).read().split('### CUT HERE')[0]
-exec(source)
-
 setup(
     name = 'bottle-sqlalchemy',
-    version = __version__,
+    version = '0.2.dev',
     description = 'SQLAlchemy integration for Bottle.',
-    long_description = __doc__,
     author = 'Iuri de Silvio',
     author_email = 'iurisilvio@gmail.com',
-    license = __license__,
+    url = 'http://www.github.com/iurisilvio/bottle-sqlalchemy',
+    license = 'MIT',
     platforms = 'any',
     py_modules = [
         'bottle_sqlalchemy'

@@ -52,12 +52,6 @@ a lot of options to do it. The plugin just handle the SQLAlchemy
 session.
 '''
 
-__author__ = "Iuri de Silvio"
-__version__ = '0.2.dev'
-__license__ = 'MIT'
-
-### CUT HERE (see setup.py)
-
 import bottle
 from bottle import HTTPError
 
