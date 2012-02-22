@@ -2,9 +2,6 @@ This bottle-sqlalchemy plugin integrates SQLAlchemy with your Bottle application
 
 The plugin inject an argument to all route callbacks that require a `db` keyword.
 
-
-Bottle SQLAlchemy plugin is a work in progress and API changes can happen until I decide the best way to do it.
-
 You are welcome to help with ideas, use cases, questions, issues, etc.
 
 Use Bottle SQLAlchemy as you want.
