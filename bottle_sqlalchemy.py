@@ -70,7 +70,7 @@ class SQLAlchemyPlugin(object):
     api = 2
 
     def __init__(self, engine, metadata=None,
-                 keyword='db', commit=True, create=False):
+                 keyword='db', commit=True, create=False, use_kwargs=False):
         '''
         :param engine: SQLAlchemy engine created with `create_engine` function
         :param metadata: SQLAlchemy metadata. It is required only if `create=True`
@@ -78,12 +78,15 @@ class SQLAlchemyPlugin(object):
         :param create: If it is true, execute `metadata.create_all(engine)`
                when plugin is applied
         :param commit: If it is true, commit changes after route is executed.
+        :param use_kwargs: plugin inject session database even if it is not
+               explicitly defined, using **kwargs argument if defined.
         '''
         self.engine = engine
         self.metadata = metadata
         self.keyword = keyword
         self.create = create
         self.commit = commit
+        self.use_kwargs = use_kwargs
 
     def setup(self, app):
         ''' Make sure that other installed plugins don't affect the same
@@ -110,9 +113,10 @@ class SQLAlchemyPlugin(object):
         keyword = config.get('keyword', self.keyword)
         create = config.get('create', self.create)
         commit = config.get('commit', self.commit)
+        use_kwargs = config.get('use_kwargs', self.use_kwargs)
 
-        args = inspect.getargspec(_callback)[0]
-        if keyword not in args:
+        argspec = inspect.getargspec(_callback)
+        if not ((use_kwargs and argspec.keywords) or keyword in argspec.args):
             return callback
 
         if create:

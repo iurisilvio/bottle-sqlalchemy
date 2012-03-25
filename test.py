@@ -89,11 +89,17 @@ class SQLAlchemyPluginTest(unittest.TestCase):
     def test_view_decorator(self):
         @self.app.get('/')
         @bottle.view('index')
-        def test(db=None): # should define a default db value
+        def test(db):
+            pass
+
+        @self.app.get('/2', sqlalchemy=dict(use_kwargs=True))
+        @bottle.view('index')
+        def test(db):
             pass
 
         self._install_plugin(self.engine, Base.metadata)
-        self._request_path('/')
+        self.assertRaises(TypeError, self._request_path, '/')
+        self._request_path('/2')
 
     def test_route_based_keyword_config(self):
         @self.app.get('/', sqlalchemy=dict(keyword='db_keyword'))
