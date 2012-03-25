@@ -9,6 +9,10 @@ from bottle.ext import sqlalchemy
 
 Base = declarative_base()
 
+def accept_only_kwargs(route):
+    def wrapper(**kwargs):
+        return route(**kwargs)
+    return wrapper
 
 class Entity(Base):
     __tablename__ = 'entity'
@@ -16,15 +20,11 @@ class Entity(Base):
 
 
 class AnotherPlugin(object):
-    name = 'another'
-    api = 2
-
     def apply(self, callback, route):
-        import inspect
         def wrapper(*args, **kwargs):
             return callback(param=1, *args, **kwargs)
-
         return wrapper
+
 
 
 class SQLAlchemyPluginTest(unittest.TestCase):
@@ -79,7 +79,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
             self._install_plugin, self.engine)
 
     def test_route_with_view(self):
-        @self.app.get('/', apply=[bottle.view('index')])
+        @self.app.get('/', apply=[accept_only_kwargs])
         def test(db):
             pass
 
@@ -88,12 +88,12 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
     def test_view_decorator(self):
         @self.app.get('/')
-        @bottle.view('index')
+        @accept_only_kwargs
         def test(db):
             pass
 
         @self.app.get('/2', sqlalchemy=dict(use_kwargs=True))
-        @bottle.view('index')
+        @accept_only_kwargs
         def test(db):
             pass
 
@@ -159,7 +159,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
         @self.app.get('/')
         def test(db, param):
-            self.assertIsNotNone(db)
+            self.assertTrue(db is not None)
             self.assertEqual(param, 1)
 
         self._request_path('/')
@@ -171,7 +171,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
         @app.get('/')
         def test(db, param):
-            self.assertIsNotNone(db)
+            self.assertTrue(db is not None)
             self.assertEqual(param, 1)
 
         self._request_path('/', app=app)
