@@ -15,6 +15,18 @@ class Entity(Base):
     id = Column(Integer, Sequence('id_seq'), primary_key=True)
 
 
+class AnotherPlugin(object):
+    name = 'another'
+    api = 2
+
+    def apply(self, callback, route):
+        import inspect
+        def wrapper(*args, **kwargs):
+            return callback(param=1, *args, **kwargs)
+
+        return wrapper
+
+
 class SQLAlchemyPluginTest(unittest.TestCase):
 
     def setUp(self):
@@ -135,8 +147,31 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self._request_path('/')
         self.assertEqual(self._db.query(Entity).count(), 0)
 
-    def _request_path(self, path, method='GET'):
-        self.app({'PATH_INFO': path, 'REQUEST_METHOD': method},
+    def test_install_other_plugin_after(self):
+        self._install_plugin(self.engine, create=False)
+        self.app.install(AnotherPlugin())
+
+        @self.app.get('/')
+        def test(db, param):
+            self.assertIsNotNone(db)
+            self.assertEqual(param, 1)
+
+        self._request_path('/')
+
+    def test_install_other_plugin_before(self):
+        app = bottle.Bottle(catchall=False)
+        app.install(AnotherPlugin())
+        app.install(sqlalchemy.Plugin(self.engine, create=False))
+
+        @app.get('/')
+        def test(db, param):
+            self.assertIsNotNone(db)
+            self.assertEqual(param, 1)
+
+        self._request_path('/', app=app)
+
+    def _request_path(self, path, method='GET', app=None):
+        (app or self.app)({'PATH_INFO': path, 'REQUEST_METHOD': method},
             lambda x, y: None)
 
     def _install_plugin(self, *args, **kwargs):

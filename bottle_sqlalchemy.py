@@ -101,17 +101,17 @@ class SQLAlchemyPlugin(object):
         # hack to support bottle v0.9.x
         if bottle.__version__.startswith('0.9'):
             allconfig = route['config']
-            callback = route['callback']
+            _callback = route['callback']
         else:
             allconfig = route.config
-            callback = route.callback
+            _callback = route.callback
 
         config = allconfig.get('sqlalchemy', {})
         keyword = config.get('keyword', self.keyword)
         create = config.get('create', self.create)
         commit = config.get('commit', self.commit)
 
-        args = inspect.getargspec(callback)[0]
+        args = inspect.getargspec(_callback)[0]
         if keyword not in args:
             return callback
 
