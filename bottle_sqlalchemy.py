@@ -123,9 +123,7 @@ class SQLAlchemyPlugin(object):
             self.metadata.create_all(self.engine)
 
         def wrapper(*args, **kwargs):
-            session = self._sessionmaker()
-            kwargs[keyword] = session
-
+            kwargs[keyword] = session = sessionmaker(self.engine)()
             try:
                 rv = callback(*args, **kwargs)
                 if commit:
@@ -142,10 +140,6 @@ class SQLAlchemyPlugin(object):
             return rv
 
         return wrapper
-
-    def _sessionmaker(self):
-        s = sessionmaker(self.engine)
-        return s()
 
 
 Plugin = SQLAlchemyPlugin

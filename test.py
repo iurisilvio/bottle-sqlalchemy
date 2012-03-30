@@ -26,7 +26,6 @@ class AnotherPlugin(object):
         return wrapper
 
 
-
 class SQLAlchemyPluginTest(unittest.TestCase):
 
     def setUp(self):
@@ -165,19 +164,18 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self._request_path('/')
 
     def test_install_other_plugin_before(self):
-        app = bottle.Bottle(catchall=False)
-        app.install(AnotherPlugin())
-        app.install(sqlalchemy.Plugin(self.engine, create=False))
+        self.app.install(AnotherPlugin())
+        self.app.install(sqlalchemy.Plugin(self.engine, create=False))
 
-        @app.get('/')
+        @self.app.get('/')
         def test(db, param):
             self.assertTrue(db is not None)
             self.assertEqual(param, 1)
 
-        self._request_path('/', app=app)
+        self._request_path('/')
 
-    def _request_path(self, path, method='GET', app=None):
-        (app or self.app)({'PATH_INFO': path, 'REQUEST_METHOD': method},
+    def _request_path(self, path, method='GET'):
+        self.app({'PATH_INFO': path, 'REQUEST_METHOD': method},
             lambda x, y: None)
 
     def _install_plugin(self, *args, **kwargs):
