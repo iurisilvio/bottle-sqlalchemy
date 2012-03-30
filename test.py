@@ -64,12 +64,19 @@ class SQLAlchemyPluginTest(unittest.TestCase):
             pass
 
         @self.app.get('/2')
-        def test2(**kw):
-            self.assertFalse('db' in kw)
+        @accept_only_kwargs
+        def test(db):
+            pass
+
+        @self.app.get('/3', sqlalchemy=dict(use_kwargs=True))
+        @accept_only_kwargs
+        def test(db):
+            pass
 
         self._install_plugin(self.engine, Base.metadata)
         self._request_path('/')
-        self._request_path('/2')
+        self.assertRaises(TypeError, self._request_path, '/2')
+        self._request_path('/3')
 
     def test_install_conflicts(self):
         self._install_plugin(self.engine)
@@ -84,21 +91,6 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
         self.app.install(sqlalchemy.Plugin(self.engine, Base.metadata))
         self._request_path('/')
-
-    def test_view_decorator(self):
-        @self.app.get('/')
-        @accept_only_kwargs
-        def test(db):
-            pass
-
-        @self.app.get('/2', sqlalchemy=dict(use_kwargs=True))
-        @accept_only_kwargs
-        def test(db):
-            pass
-
-        self._install_plugin(self.engine, Base.metadata)
-        self.assertRaises(TypeError, self._request_path, '/')
-        self._request_path('/2')
 
     def test_route_based_keyword_config(self):
         @self.app.get('/', sqlalchemy=dict(keyword='db_keyword'))
@@ -153,7 +145,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self.assertEqual(self._db.query(Entity).count(), 0)
 
     def test_install_other_plugin_after(self):
-        self._install_plugin(self.engine, create=False)
+        self._install_plugin(self.engine)
         self.app.install(AnotherPlugin())
 
         @self.app.get('/')
@@ -165,7 +157,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
     def test_install_other_plugin_before(self):
         self.app.install(AnotherPlugin())
-        self.app.install(sqlalchemy.Plugin(self.engine, create=False))
+        self._install_plugin(self.engine)
 
         @self.app.get('/')
         def test(db, param):
