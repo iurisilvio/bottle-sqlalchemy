@@ -59,7 +59,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         self._request_path('/')
 
     def test_without_keyword(self):
-        @self.app.get('/')
+        @self.app.get('/', sqlalchemy=dict(use_kwargs=True))
         def test():
             pass
 
@@ -73,7 +73,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
         def test(db):
             pass
 
-        self._install_plugin(self.engine, Base.metadata)
+        self._install_plugin(self.engine)
         self._request_path('/')
         self.assertRaises(TypeError, self._request_path, '/2')
         self._request_path('/3')
