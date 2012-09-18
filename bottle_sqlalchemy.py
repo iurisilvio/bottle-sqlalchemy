@@ -69,7 +69,6 @@ if not hasattr(bottle, 'PluginError'):
 
 class SQLAlchemyPlugin(object):
 
-    name = 'sqlalchemy'
     api = 2
 
     def __init__(self, engine, metadata=None,
@@ -87,6 +86,7 @@ class SQLAlchemyPlugin(object):
         self.engine = engine
         self.metadata = metadata
         self.keyword = keyword
+        self.name = 'sqlalchemy_' + self.keyword
         self.create = create
         self.commit = commit
         self.use_kwargs = use_kwargs
