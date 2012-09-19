@@ -69,6 +69,7 @@ if not hasattr(bottle, 'PluginError'):
 
 class SQLAlchemyPlugin(object):
 
+    name = 'sqlalchemy'
     api = 2
 
     def __init__(self, engine, metadata=None,
@@ -86,7 +87,6 @@ class SQLAlchemyPlugin(object):
         self.engine = engine
         self.metadata = metadata
         self.keyword = keyword
-        self.name = 'sqlalchemy_' + self.keyword
         self.create = create
         self.commit = commit
         self.use_kwargs = use_kwargs
@@ -100,6 +100,8 @@ class SQLAlchemyPlugin(object):
             if other.keyword == self.keyword:
                 raise bottle.PluginError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
+            elif other.name == self.name:
+                self.name += '_%s' % self.keyword
         if self.create and not self.metadata:
             raise bottle.PluginError('Define metadata value to create database.')
 
