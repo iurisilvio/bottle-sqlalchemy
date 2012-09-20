@@ -81,25 +81,13 @@ class SQLAlchemyPluginTest(unittest.TestCase):
     def test_install_conflicts(self):
         self._install_plugin(self.engine)
         self._install_plugin(self.engine, keyword='db2')
-        plugin_with_other_name = sqlalchemy.Plugin(self.engine, create=False, keyword='db3')
-        plugin_with_other_name.name = 'meh'
-        self.app.install(plugin_with_other_name)
 
         @self.app.get('/')
-        def test(db, db3):
+        def test(db, db2):
             pass
 
-        @self.app.get('/2')
-        def test(db2, db3):
-            pass
-
-        # first plugin is ignored
-        self.assertRaises(TypeError, self._request_path, '/')
-        # but it is still installed
-        self.assertRaises(bottle.PluginError,
-            self._install_plugin, self.engine)
         # I have two plugins working with different names
-        self._request_path('/2')
+        self._request_path('/')
 
     def test_route_with_view(self):
         @self.app.get('/', apply=[accept_only_kwargs])

@@ -100,6 +100,8 @@ class SQLAlchemyPlugin(object):
             if other.keyword == self.keyword:
                 raise bottle.PluginError("Found another SQLAlchemy plugin with "\
                                   "conflicting settings (non-unique keyword).")
+            elif other.name == self.name:
+                self.name += '_%s' % self.keyword
         if self.create and not self.metadata:
             raise bottle.PluginError('Define metadata value to create database.')
 
