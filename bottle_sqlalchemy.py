@@ -14,12 +14,14 @@ Usage Example::
     from bottle.ext import sqlalchemy
     from sqlalchemy import create_engine, Column, Integer, Sequence, String
     from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import sessionmaker
 
     Base = declarative_base()
     engine = create_engine('sqlite:///:memory:', echo=True)
+    Session = sessionmaker()
 
     app = bottle.Bottle()
-    plugin = sqlalchemy.Plugin(engine, Base.metadata, create=True)
+    plugin = sqlalchemy.Plugin(engine, Session, Base.metadata, create=True)
     app.install(plugin)
 
     class Entity(Base):
@@ -47,7 +49,7 @@ Usage Example::
         db.add(entity)
 
 
-It is up to you create engine and metadata, because SQLAlchemy has
+It is up to you create engine, create_session, and metadata, because SQLAlchemy has
 a lot of options to do it. The plugin just handle the SQLAlchemy
 session.
 
@@ -58,8 +60,8 @@ License: MIT (see LICENSE for details)
 import inspect
 
 import bottle
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import ScopedSession
 
 # PluginError is defined to bottle >= 0.10
 if not hasattr(bottle, 'PluginError'):
@@ -72,10 +74,11 @@ class SQLAlchemyPlugin(object):
     name = 'sqlalchemy'
     api = 2
 
-    def __init__(self, engine, metadata=None,
+    def __init__(self, engine, create_session, metadata=None,
                  keyword='db', commit=True, create=False, use_kwargs=False):
         '''
         :param engine: SQLAlchemy engine created with `create_engine` function
+        :param create_session: SQLAlchemy session maker created with the 'sessionmaker' function
         :param metadata: SQLAlchemy metadata. It is required only if `create=True`
         :param keyword: Keyword used to inject session database in a route
         :param create: If it is true, execute `metadata.create_all(engine)`
@@ -85,6 +88,7 @@ class SQLAlchemyPlugin(object):
                explicitly defined, using **kwargs argument if defined.
         '''
         self.engine = engine
+        self.create_session = create_session
         self.metadata = metadata
         self.keyword = keyword
         self.create = create
@@ -104,7 +108,7 @@ class SQLAlchemyPlugin(object):
                 self.name += '_%s' % self.keyword
         if self.create and not self.metadata:
             raise bottle.PluginError('Define metadata value to create database.')
-
+    
     def apply(self, callback, route):
         # hack to support bottle v0.9.x
         if bottle.__version__.startswith('0.9'):
@@ -128,7 +132,7 @@ class SQLAlchemyPlugin(object):
             self.metadata.create_all(self.engine)
 
         def wrapper(*args, **kwargs):
-            kwargs[keyword] = session = sessionmaker(self.engine)()
+            kwargs[keyword] = session = self.create_session(bind=self.engine)
             try:
                 rv = callback(*args, **kwargs)
                 if commit:
@@ -141,10 +145,13 @@ class SQLAlchemyPlugin(object):
                     session.commit()
                 raise
             finally:
-                session.close()
+                if type(self.create_session) is ScopedSession:
+                    self.create_session.remove()
+                else:
+                    session.close()
             return rv
 
         return wrapper
-
+    
 
 Plugin = SQLAlchemyPlugin
