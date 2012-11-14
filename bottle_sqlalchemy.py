@@ -47,8 +47,8 @@ Usage Example::
         db.add(entity)
 
 
-It is up to you create engine, create_session, and metadata, because SQLAlchemy has
-a lot of options to do it. The plugin just handle the SQLAlchemy
+It is up to you create engine, and metadata, because SQLAlchemy has
+a lot of options to do it. The plugin just handles the SQLAlchemy
 session.
 
 Copyright (c) 2011-2012, Iuri de Silvio
