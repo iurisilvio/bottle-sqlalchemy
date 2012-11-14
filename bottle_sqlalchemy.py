@@ -14,14 +14,12 @@ Usage Example::
     from bottle.ext import sqlalchemy
     from sqlalchemy import create_engine, Column, Integer, Sequence, String
     from sqlalchemy.ext.declarative import declarative_base
-    from sqlalchemy.orm import sessionmaker
 
     Base = declarative_base()
     engine = create_engine('sqlite:///:memory:', echo=True)
-    Session = sessionmaker()
 
     app = bottle.Bottle()
-    plugin = sqlalchemy.Plugin(engine, Session, Base.metadata, create=True)
+    plugin = sqlalchemy.Plugin(engine, Base.metadata, create=True)
     app.install(plugin)
 
     class Entity(Base):
@@ -61,7 +59,7 @@ import inspect
 
 import bottle
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import ScopedSession
+from sqlalchemy.orm import ScopedSession, sessionmaker
 
 # PluginError is defined to bottle >= 0.10
 if not hasattr(bottle, 'PluginError'):
@@ -74,11 +72,10 @@ class SQLAlchemyPlugin(object):
     name = 'sqlalchemy'
     api = 2
 
-    def __init__(self, engine, create_session, metadata=None,
-                 keyword='db', commit=True, create=False, use_kwargs=False):
+    def __init__(self, engine, metadata=None,
+                 keyword='db', commit=True, create=False, use_kwargs=False, create_session=None):
         '''
         :param engine: SQLAlchemy engine created with `create_engine` function
-        :param create_session: SQLAlchemy session maker created with the 'sessionmaker' function
         :param metadata: SQLAlchemy metadata. It is required only if `create=True`
         :param keyword: Keyword used to inject session database in a route
         :param create: If it is true, execute `metadata.create_all(engine)`
@@ -86,8 +83,12 @@ class SQLAlchemyPlugin(object):
         :param commit: If it is true, commit changes after route is executed.
         :param use_kwargs: plugin inject session database even if it is not
                explicitly defined, using **kwargs argument if defined.
+        :param create_session: SQLAlchemy session maker created with the 
+                'sessionmaker' function. Will create its own if undefined.
         '''
         self.engine = engine
+        if create_session is None:
+            create_session = sessionmaker()
         self.create_session = create_session
         self.metadata = metadata
         self.keyword = keyword
