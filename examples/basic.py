@@ -56,7 +56,7 @@ def delete_name(name):
         session.close()
 
 
-bottle.install(SQLAlchemyPlugin(engine, Base.metadata, create=True))
+bottle.install(SQLAlchemyPlugin(engine, Base.metadata, create=True, create_session = create_session))
 
 if __name__ == '__main__':
     bottle.debug(True)
