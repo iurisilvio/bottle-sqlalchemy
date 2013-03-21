@@ -59,7 +59,8 @@ import inspect
 
 import bottle
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import ScopedSession, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.scoping import ScopedSession
 
 # PluginError is defined to bottle >= 0.10
 if not hasattr(bottle, 'PluginError'):
