@@ -89,7 +89,7 @@ class SQLAlchemyPlugin(object):
         '''
         self.engine = engine
         if create_session is None:
-            create_session = sessionmaker(bind=self.engine)
+            create_session = sessionmaker()
         self.create_session = create_session
         self.metadata = metadata
         self.keyword = keyword
@@ -134,10 +134,7 @@ class SQLAlchemyPlugin(object):
             self.metadata.create_all(self.engine)
 
         def wrapper(*args, **kwargs):
-            session_kw = {}
-            kwargs[keyword] = session = self.create_session()
-            if not session.bind:
-                session.bind = self.engine
+            kwargs[keyword] = session = self.create_session(bind=self.engine)
             try:
                 rv = callback(*args, **kwargs)
                 if commit:
