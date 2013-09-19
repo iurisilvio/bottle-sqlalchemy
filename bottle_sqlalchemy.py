@@ -150,7 +150,7 @@ class SQLAlchemyPlugin(object):
                     session.commit()
                 raise
             finally:
-                if type(self.create_session) is ScopedSession:
+                if isinstance(self.create_session, ScopedSession):
                     self.create_session.remove()
                 else:
                     session.close()
