@@ -114,17 +114,21 @@ class SQLAlchemyPlugin(object):
     def apply(self, callback, route):
         # hack to support bottle v0.9.x
         if bottle.__version__.startswith('0.9'):
-            allconfig = route['config']
+            config = route['config']
             _callback = route['callback']
         else:
-            allconfig = route.config
+            config = route.config
             _callback = route.callback
 
-        config = allconfig.get('sqlalchemy', {})
-        keyword = config.get('keyword', self.keyword)
-        create = config.get('create', self.create)
-        commit = config.get('commit', self.commit)
-        use_kwargs = config.get('use_kwargs', self.use_kwargs)
+        g = lambda key, default: config.get(key, default)
+        # hack to support route based config with `ConfigDict`
+        if bottle.__version__.startswith('0.12'):
+            g = lambda key, default: config.get('sqlalchemy.' + key, default)
+
+        keyword = g('keyword', self.keyword)
+        create = g('create', self.create)
+        commit = g('commit', self.commit)
+        use_kwargs = g('use_kwargs', self.use_kwargs)
 
         argspec = inspect.getargspec(_callback)
         if not ((use_kwargs and argspec.keywords) or keyword in argspec.args):
