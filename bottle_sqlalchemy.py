@@ -120,7 +120,7 @@ class SQLAlchemyPlugin(object):
             config = route.config
             _callback = route.callback
 
-        g = lambda key, default: config.get(key, default)
+        g = lambda key, default: config.get('sqlalchemy', {}).get(key, default)
         # hack to support route based config with `ConfigDict`
         if bottle.__version__.startswith('0.12'):
             g = lambda key, default: config.get('sqlalchemy.' + key, default)
