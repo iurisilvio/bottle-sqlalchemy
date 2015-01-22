@@ -19,10 +19,7 @@ setup(
     py_modules = [
         'bottle_sqlalchemy'
     ],
-    requires = [
-        'bottle (>=0.9)',
-        'sqlalchemy'
-    ],
+    install_requires = ['bottle>=0.9', 'sqlalchemy'],
     classifiers = [
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
