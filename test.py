@@ -9,10 +9,12 @@ from bottle.ext import sqlalchemy
 
 Base = declarative_base()
 
+
 def accept_only_kwargs(route):
     def wrapper(**kwargs):
         return route(**kwargs)
     return wrapper
+
 
 class Entity(Base):
     __tablename__ = 'entity'
@@ -65,18 +67,34 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
         @self.app.get('/2')
         @accept_only_kwargs
-        def test(db):
+        def test_2(db):
             pass
 
         @self.app.get('/3', sqlalchemy=dict(use_kwargs=True))
         @accept_only_kwargs
-        def test(db):
+        def test_3(db):
             pass
 
         self._install_plugin(self.engine)
         self._request_path('/')
         self.assertRaises(TypeError, self._request_path, '/2')
         self._request_path('/3')
+
+    def test_py3_kwonly_func(self):
+        try:
+            exec("""
+@self.app.get('/')
+def test(db, *args, kwonly=True):
+    pass
+""")
+        except SyntaxError:
+            try:
+                self.skipTest("Only python>=3.4 support kwonly args.")
+            except AttributeError:
+                pass
+        else:
+            self._install_plugin(self.engine)
+            self._request_path('/')
 
     def test_install_conflicts(self):
         self._install_plugin(self.engine)
@@ -173,7 +191,7 @@ class SQLAlchemyPluginTest(unittest.TestCase):
 
     def _request_path(self, path, method='GET'):
         self.app({'PATH_INFO': path, 'REQUEST_METHOD': method},
-            lambda x, y: None)
+                 lambda x, y: None)
 
     def _install_plugin(self, *args, **kwargs):
         self.app.install(sqlalchemy.Plugin(*args, **kwargs))

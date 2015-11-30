@@ -68,6 +68,7 @@ if not hasattr(bottle, 'PluginError'):
         pass
     bottle.PluginError = PluginError
 
+
 class SQLAlchemyPlugin(object):
 
     name = 'sqlalchemy'
@@ -130,8 +131,19 @@ class SQLAlchemyPlugin(object):
         commit = g('commit', self.commit)
         use_kwargs = g('use_kwargs', self.use_kwargs)
 
-        argspec = inspect.getargspec(_callback)
-        if not ((use_kwargs and argspec.keywords) or keyword in argspec.args):
+        try:
+            # check if inspect.signature exists
+            inspect.signature
+        except AttributeError:
+            argspec = inspect.getargspec(_callback)
+            parameters = argspec.args
+            accept_kwargs = argspec.keywords
+        else:
+            parameters = inspect.signature(_callback).parameters
+            accept_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD
+                                for p in parameters.values())
+
+        if not ((use_kwargs and accept_kwargs) or keyword in parameters):
             return callback
 
         if create:
@@ -158,6 +170,6 @@ class SQLAlchemyPlugin(object):
             return rv
 
         return wrapper
-    
+
 
 Plugin = SQLAlchemyPlugin
