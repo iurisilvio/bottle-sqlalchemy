@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name = 'bottle-sqlalchemy',
-    version = '0.4.2',
+    version = '0.4.3',
     description = 'SQLAlchemy integration for Bottle.',
     author = 'Iuri de Silvio',
     author_email = 'iurisilvio@gmail.com',
