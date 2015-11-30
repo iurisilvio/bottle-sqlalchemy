@@ -1,5 +1,32 @@
+sudo: false
 language: python
 
-before_install: pip install tox
+python:
+    - 2.6
+    - 2.7
+    - 3.3
+    - 3.4
+    - 3.5
+    - pypy
+    # sqlalchemy and bottle does not support nightly yet
+    # - nightly
 
-script: tox
+env:
+    - BOTTLE=">=0.9,<0.10" SQLALCHEMY=">=0.7,<0.8"
+    - BOTTLE=">=0.9,<0.10" SQLALCHEMY=">=0.8,<0.9"
+    - BOTTLE=">=0.9,<0.10" SQLALCHEMY=">=0.9,<1.0"
+    - BOTTLE=">=0.9,<0.10" SQLALCHEMY=">=1.0"
+    - BOTTLE=">=0.10,<0.11" SQLALCHEMY=">=0.7,<0.8"
+    - BOTTLE=">=0.10,<0.11" SQLALCHEMY=">=0.8,<0.9"
+    - BOTTLE=">=0.10,<0.11" SQLALCHEMY=">=1.0"
+    - BOTTLE=">=0.11,<0.12" SQLALCHEMY=">=0.7,<0.8"
+    - BOTTLE=">=0.11,<0.12" SQLALCHEMY=">=0.8,<0.9"
+    - BOTTLE=">=0.11,<0.12" SQLALCHEMY=">=1.0"
+    - BOTTLE=">=0.12" SQLALCHEMY=">=0.7,<0.8"
+    - BOTTLE=">=0.12" SQLALCHEMY=">=0.8,<0.9"
+    - BOTTLE=">=0.12" SQLALCHEMY=">=1.0"
+
+
+before_install: pip install "bottle$BOTTLE" "sqlalchemy$SQLALCHEMY"
+
+script: python test.py
