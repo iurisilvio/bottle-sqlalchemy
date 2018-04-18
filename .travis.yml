@@ -7,9 +7,9 @@ python:
     - 3.3
     - 3.4
     - 3.5
+    - 3.6
     - pypy
-    # sqlalchemy and bottle does not support nightly yet
-    # - nightly
+    - nightly
 
 env:
     - BOTTLE=">=0.9,<0.10" SQLALCHEMY=">=0.7,<0.8"
