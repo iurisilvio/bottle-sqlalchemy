@@ -2,7 +2,6 @@ sudo: false
 language: python
 
 python:
-    - 2.6
     - 2.7
     - 3.3
     - 3.4
@@ -30,3 +29,4 @@ env:
 before_install: pip install "bottle$BOTTLE" "sqlalchemy$SQLALCHEMY"
 
 script: python test.py
+
